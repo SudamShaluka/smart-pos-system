@@ -27,6 +27,9 @@ public class SingleConnectionDataSource {
             throw new RuntimeException(e);
         }
     }
+    public static SingleConnectionDataSource getInstance() {
+        return (instance == null) ? (instance = new SingleConnectionDataSource()) : instance;
+    }
 
     private void generateSchema() throws Exception {
         URL url = getClass().getResource("/schema.sql");
@@ -38,7 +41,5 @@ public class SingleConnectionDataSource {
 
     public Connection getConnection(){ return connection; }
 
-    public static SingleConnectionDataSource getInstance() {
-        return (instance == null) ? (instance = new SingleConnectionDataSource()) : instance;
-    }
+
 }
