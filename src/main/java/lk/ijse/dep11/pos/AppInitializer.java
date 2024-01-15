@@ -29,6 +29,8 @@ public class AppInitializer extends Application {
         Scene mainScene = new Scene(root);
         primaryStage.setScene(mainScene);
         primaryStage.setTitle("Smart POS");
+        primaryStage.setResizable(false);
+
         primaryStage.centerOnScreen();
         primaryStage.show();
     }
