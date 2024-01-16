@@ -3,12 +3,15 @@ package lk.ijse.dep11.pos.db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class OrderDataAccess {
 
     private static final PreparedStatement STM_EXISTS_BY_CUSTOMER_ID;
     private static final PreparedStatement STM_EXISTS_BY_ITEM_CODE;
+    private static final PreparedStatement STM_GET_LAST_ID;
+
 
     static {
         try {
@@ -17,6 +20,8 @@ public class OrderDataAccess {
                     .prepareStatement("SELECT * FROM \"order\" WHERE customer_id = ?");
             STM_EXISTS_BY_ITEM_CODE = connection
                     .prepareStatement("SELECT * FROM order_item WHERE item_code = ?");
+            STM_GET_LAST_ID = connection
+                    .prepareStatement("SELECT id FROM \"order\" ORDER BY id DESC FETCH FIRST ROWS ONLY");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -29,5 +34,9 @@ public class OrderDataAccess {
     public static boolean existsOrderByItemCode(String code) throws SQLException {
         STM_EXISTS_BY_ITEM_CODE.setString(1, code);
         return STM_EXISTS_BY_ITEM_CODE.executeQuery().next();
+    }
+    public static String getLastOrderId() throws SQLException{
+        ResultSet rst = STM_GET_LAST_ID.executeQuery();
+        return (rst.next())? rst.getString(1): null;
     }
 }
