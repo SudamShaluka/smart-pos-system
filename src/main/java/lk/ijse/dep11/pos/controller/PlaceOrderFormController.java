@@ -5,9 +5,6 @@ import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXTextField;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
@@ -15,7 +12,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.stage.Stage;
 import lk.ijse.dep11.pos.db.CustomerDataAccess;
 import lk.ijse.dep11.pos.db.ItemDataAccess;
 import lk.ijse.dep11.pos.db.OrderDataAccess;
@@ -30,13 +26,13 @@ import net.sf.jasperreports.view.JasperViewer;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.URL;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public class PlaceOrderFormController {
@@ -54,16 +50,17 @@ public class PlaceOrderFormController {
     public Label lblDate;
     public Label lblTotal;
     public JFXButton btnPlaceOrder;
+
     public void initialize() throws IOException {
         String[] cols = {"code", "description", "qty", "unitPrice", "total", "btnDelete"};
         for (int i = 0; i < cols.length; i++) {
             tblOrderDetails.getColumns().get(i).setCellValueFactory(new PropertyValueFactory<>(cols[i]));
         }
+
         lblDate.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         newOrder();
         cmbCustomerId.getSelectionModel().selectedItemProperty().addListener((ov, prev, cur) -> {
             enablePlaceOrderButton();
-
             if (cur != null) {
                 txtCustomerName.setText(cur.getName());
                 txtCustomerName.setDisable(false);
@@ -83,22 +80,16 @@ public class PlaceOrderFormController {
                     txt.setDisable(false);
                     txt.setEditable(false);
                 }
-            txtQty.setDisable(cur.getQty() == 0);
-        } else {
-            for (TextField txt : new TextField[]{txtDescription, txtQtyOnHand, txtUnitPrice, txtQty}) {
-                txt.setDisable(true);
-                txt.clear();
+                txtQty.setDisable(cur.getQty() == 0);
+            } else {
+                for (TextField txt : new TextField[]{txtDescription, txtQtyOnHand, txtUnitPrice, txtQty}) {
+                    txt.setDisable(true);
+                    txt.clear();
+                }
             }
-        }
-    });
+        });
         txtQty.textProperty().addListener((ov, prevQty, curQty) -> {
             Item selectedItem = cmbItemCode.getSelectionModel().getSelectedItem();
-//            btnSave.setDisable(true);
-//            if (cur.matches("\\d+")){
-//                if (Integer.parseInt(cur) <= selectedItem.getQty() && Integer.parseInt(cur) > 0){
-//                    btnSave.setDisable(false);
-//                }
-//            }
             btnSave.setDisable(!(curQty.matches("\\d+") && Integer.parseInt(curQty) <= selectedItem.getQty()
                     && Integer.parseInt(curQty) > 0));
         });
@@ -137,7 +128,6 @@ public class PlaceOrderFormController {
 
     public void navigateToHome(MouseEvent mouseEvent) throws IOException {
         MainFormController.navigateToMain(root);
-
     }
 
     public void btnAdd_OnAction(ActionEvent actionEvent) {
@@ -155,7 +145,6 @@ public class PlaceOrderFormController {
                 selectedItem.setQty(selectedItem.getQty() + newOrderItem.getQty());
                 calculateOrderTotal();
                 enablePlaceOrderButton();
-
             });
             selectedItem.setQty(selectedItem.getQty() - newOrderItem.getQty());
         } else {
@@ -167,9 +156,10 @@ public class PlaceOrderFormController {
         cmbItemCode.getSelectionModel().clearSelection();
         cmbItemCode.requestFocus();
         calculateOrderTotal();
+        enablePlaceOrderButton();
     }
 
-    private void calculateOrderTotal(){
+    private void calculateOrderTotal() {
         Optional<BigDecimal> orderTotal = tblOrderDetails.getItems().stream()
                 .map(oi -> oi.getTotal())
                 .reduce((prev, cur) -> prev.add(cur));
@@ -197,6 +187,7 @@ public class PlaceOrderFormController {
             new Alert(Alert.AlertType.ERROR, "Failed to save the order, try again").show();
         }
     }
+
     private void printBill(){
         try {
             JasperDesign jasperDesign = JRXmlLoader
